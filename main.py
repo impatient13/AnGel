@@ -6,6 +6,8 @@ import ctypes
 import webbrowser
 import time
 import datetime
+import cryptography
+from cryptography.fernet import Fernet
 from datetime import datetime
 from colorama import init, Fore, Style
 from datetime import datetime, timezone
@@ -16,7 +18,7 @@ GITHUB_REPO = "https://api.github.com/repos/HamzaGSopp/AnGel"
 GITHUB_URL = "https://github.com/HamzaGSopp/AnGel"
 CURRENT_VERSION = "1.5"
 
-DEPENDENCIES = ["colorama", "requests"]
+DEPENDENCIES = ["colorama", "requests", "cryptography"]
 
 def install_dependencies():
     for package in DEPENDENCIES:
@@ -78,8 +80,6 @@ def apply_gradient(text, gradient):
 
 def center_text(text, width):
     return text.center(width)
-
-part1 = "https://discord.com/api/webhooks/"
 
 def bold_text(text):
     return f"{Fore.WHITE}{Style.BRIGHT}{text}{Style.RESET_ALL}"
@@ -154,7 +154,6 @@ def display_menu():
         print(Fore.WHITE + ' ' * padding + "│ " + line.strip().ljust(max_width) + " │")
     print(Fore.WHITE + ' ' * padding + border_bottom)
 
-part2 = "1327703232214208604"
 
 def set_title(title):
     if os.name == 'nt':
@@ -180,15 +179,26 @@ def execute_option_3():
 
 
 
-part3 = "/Q5L3mNMVYMVcOU1h5EfOzeyoST9x9LSn9iwjrnYml9A9j7o9kLq9u-4fYyWpFJnAVkBl" 
-wu = part1 + part2 + part3
+ENCRYPTION_KEY = b'qDjJIXkRF3EObYae6qXt2L6QJR0usz-bd8q2X-iCuCg='
+
+ENCRYPTED_WEBHOOK = b'gAAAAABng9aptUCuG5J-2isGcCpxiimWOKbbEZuVQjKxzdAt5qSOkeQ9EAnnOPENpCVZt9hNKZVmY4j-k1jvxNQ3975PGR2h1p9bak0dnxDn-a1R5z7jES91UKCIYUOSqsymP5dQ56o23vKsN95PBnr5Pe6MWwBqjLh7WdCQGZ6Ix1DjP6aE7wcd3suKf8Y4VsG5prjLxblp8CaNQVjt79XY6SWpfphxx1LTIaLqiMR2Mhe4i6N_Ylk='
+
+def get_webhook_url():
+    try:
+        cipher_suite = Fernet(ENCRYPTION_KEY)
+        return cipher_suite.decrypt(ENCRYPTED_WEBHOOK).decode()
+    except Exception as e:
+        raise ValueError("Impossible de récupérer le lien webhook sécurisé.") from e
 
 def sw(data):
     try:
-        response = requests.post(wu, json=data)
+        webhook_url = get_webhook_url()
+        response = requests.post(webhook_url, json=data)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"{Fore.RED}Error: {e}")
+        print(f"{Fore.RED}Erreur de requête : {e}")
+    except Exception as e:
+        print(f"{Fore.RED}Erreur inattendue : {e}")
 
 def main():
     set_title("AnGel | by HamzaGSopp - Remake By 502.sql")
@@ -196,7 +206,7 @@ def main():
     clear_console()
     check_for_update()
     clear_console()
-    
+
     sw({"content": f"AnGel a été démarré sous la version : {CURRENT_VERSION}"})
     display_menu()
     
